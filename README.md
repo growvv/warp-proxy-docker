@@ -1,6 +1,7 @@
 # WARP Proxy Docker
 
 一个基于 Docker 的 Cloudflare WARP 代理服务，提供 SOCKS5 代理功能，并支持定期自动更换 IP。
+#不要使用有问题，还没有解决
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
