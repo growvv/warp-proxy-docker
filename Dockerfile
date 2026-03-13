@@ -1,6 +1,6 @@
 FROM alpine:latest
 
-# 增加 iptables 和 ip6tables
+# 增加 ip6tables 和 iptables
 RUN apk add --no-cache \
     wireguard-tools \
     wireguard-go \
@@ -9,7 +9,8 @@ RUN apk add --no-cache \
     iproute2 \
     ca-certificates \
     bash \
-    iptables
+    iptables \
+    ip6tables
 
 RUN WGCF_URL=$(curl -s https://api.github.com/repos/ViRb3/wgcf/releases/latest | grep "browser_download_url.*linux_amd64" | cut -d '"' -f 4) && \
     if [ -z "$WGCF_URL" ]; then WGCF_URL="https://github.com/ViRb3/wgcf/releases/download/v2.2.22/wgcf_2.2.22_linux_amd64"; fi && \
