@@ -1,9 +1,8 @@
 FROM alpine:3.20
 
-RUN apk add --no-cache curl bash iproute2
+RUN apk add --no-cache curl bash iproute2 ca-certificates
 
-# 下载 warp-proxy
-RUN wget -O /usr/local/bin/warp-proxy \
+RUN curl -L -o /usr/local/bin/warp-proxy \
 https://github.com/bepass-org/warp-plus/releases/latest/download/warp-proxy-linux-amd64 \
 && chmod +x /usr/local/bin/warp-proxy
 
