@@ -8,6 +8,9 @@ services:
     privileged: true # WARP 服务可能需要较高权限来配置网络
     cap_add:
       - NET_ADMIN
+      - SYS_ADMIN # 必须加入此项，解决 warp-svc 权限问题
+    devices:
+      - /dev/net/tun:/dev/net/tun # 显式映射 TUN 设备
     ports:
       - "1080:1080" # 宿主机端口:容器端口
     environment:
