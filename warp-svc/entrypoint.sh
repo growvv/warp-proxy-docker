@@ -11,7 +11,9 @@ while ! warp-cli --accept-tos status > /dev/null 2>&1; do
     sleep 1
 done
 echo "warp-svc is running."
-
+# 禁用自动 DNS 更新，减少不必要的系统调用
+warp-cli --accept-tos tunnel mode proxy
+warp-cli --accept-tos tunnel ipv6 allow
 # 2. 初始化 WARP 配置 (使用内部端口 10080)
 warp-cli --accept-tos registration new
 warp-cli --accept-tos mode proxy
