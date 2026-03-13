@@ -13,7 +13,7 @@ services:
     environment:
       - ROTATE_INTERVAL=3600
       - EXPECTED_REGIONS=US,HK,SG,JP,TW
-      - IPV6_PRIORITY=true
+      - IPV6_PRIORITY=false
     sysctls:
       - net.ipv6.conf.all.disable_ipv6=0
 networks:

@@ -1,6 +1,6 @@
 #!/bin/bash
 echo "[INFO] Running healthcheck..."
-IP=$(curl -s --socks5 127.0.0.1:1080 --connect-timeout 5 https://api.ipify.org)
+IP=$(curl -s --socks5 127.0.0.1:1080 --connect-timeout 10 https://cloudflare.com/cdn-cgi/trace | grep "ip=" | cut -d'=' -f2)
 
 if [ -z "$IP" ]; then
    echo "[ERROR] Proxy dead or unreachable, restarting wireproxy..."

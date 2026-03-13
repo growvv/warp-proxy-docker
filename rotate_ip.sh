@@ -32,7 +32,7 @@ do
       wireproxy -c /etc/warp-go/warp.conf > /var/log/wireproxy.log 2>&1 &
       sleep 10
       
-      CURRENT_REGION=$(curl -s --socks5 127.0.0.1:1080 --connect-timeout 5 https://api.ip.sb/geoip | jq -r '.country_code')
+      CURRENT_REGION=$(curl -s --socks5 127.0.0.1:1080 --connect-timeout 10 https://cloudflare.com/cdn-cgi/trace | grep loc= | cut -d'=' -f2)
       
       if [ -z "$CURRENT_REGION" ] || [ "$CURRENT_REGION" == "null" ]; then
           echo "[WARN] Could not determine region, retrying..."
