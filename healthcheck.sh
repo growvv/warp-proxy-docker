@@ -6,9 +6,8 @@ if [ -z "$IP" ]; then
    echo "[ERROR] Proxy dead or unreachable, restarting wireproxy..."
    pkill wireproxy
    sleep 3
-   mkdir -p /etc/wireguard
-   cd /etc/wireguard
-   wireproxy -c wireproxy.conf > /var/log/wireproxy.log 2>&1 &
+   cd /etc/warp-go
+   wireproxy -c warp.conf > /var/log/wireproxy.log 2>&1 &
 else
    echo "[INFO] Healthcheck passed. Current IP: $IP"
 fi
