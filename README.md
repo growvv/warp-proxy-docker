@@ -1,7 +1,11 @@
 # WARP Proxy Docker
 
 一个基于 Docker 的 Cloudflare WARP 代理服务，提供 SOCKS5 代理功能，并支持定期自动更换 IP。
-#不要使用有问题，还没有解决
+
+**当前仓库提供两个版本供选择，请根据您的网络需求进行部署：**
+
+1. **[默认版本] Wireproxy 轻量版**：位于主目录。无需特权模式，CPU 和内存占用极低（几乎为0），连接极度稳定。**缺点是仅支持 IPv4 代理出口**。
+2. **[备选版本] 官方 warp-svc 完整版**：位于 `warp-svc/` 目录。使用官方守护进程，**支持完整的 6in4（即通过代理访问纯 IPv6 网站）**。缺点是需要特权模式（`privileged: true`），且守护进程会导致较高的 CPU 占用。
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -9,31 +13,26 @@
 
 - [功能特性](#功能特性)
 - [前置要求](#前置要求)
-- [快速开始](#快速开始)
+- [快速开始 (Wireproxy 轻量版)](#快速开始)
+- [快速开始 (warp-svc IPv6版)](#ipv6支持版本)
 - [配置说明](#配置说明)
 - [使用方法](#使用方法)
-- [项目结构](#项目结构)
-- [常见问题](#常见问题)
-- [注意事项](#注意事项)
 
 ## 🌟 功能特性
 
-- ✅ **SOCKS5 代理服务** - 通过 Cloudflare WARP 提供稳定的 SOCKS5 代理
-- ✅ **自动更换 IP** - 支持定时自动更换 IP，避免被限制
-- ✅ **Docker 容器化** - 开箱即用，无需复杂配置
-- ✅ **IPv6 支持** - 完整支持 IPv4 和 IPv6
-- ✅ **自动重启** - 容器故障自动重启
-- ✅ **端口转发** - 使用 socat 实现透明端口转发
+- ✅ **SOCKS5 代理服务** - 提供稳定的 SOCKS5 代理
+- ✅ **自动更换 IP** - 支持定时重置账号更换 IP，避免被限制
+- ✅ **断线自愈** - 增加网络健康检查，节点无响应自动重启恢复
+- ✅ **极低占用** - (默认版) 放弃官方守护进程，改用 wireproxy，资源消耗极低
 
 ## 📦 前置要求
 
 - Docker（版本 20.10+）
 - Docker Compose（版本 1.29+）
-- Linux 系统（推荐 Ubuntu 20.04+）
-- 至少 512MB RAM
-- 网络连接良好
 
-## 🚀 快速开始
+## 🚀 快速开始 (默认 Wireproxy 版)
+
+推荐绝大多数只需突破网络封锁或进行普通爬虫任务的用户使用此版本。
 
 ### 1. 克隆项目
 
@@ -45,77 +44,67 @@ cd warp-proxy-docker
 ### 2. 启动服务
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 ### 3. 验证服务
 
 ```bash
-# 查看容器状态
-docker-compose ps
-
-# 查看日志
-docker-compose logs -f warp-socks
-
 # 测试 SOCKS5 代理（需要安装 curl）
-curl -x socks5://127.0.0.1:1080 https://www.google.com
+curl -x socks5h://127.0.0.1:1080 https://api.ipify.org
 ```
 
-### 4. 停止服务
+---
+
+## 🌐 IPv6 支持版本 (warp-svc 官方内核版)
+
+如果您**必须**通过代理访问纯 IPv6 的网站（如 `ipv6.icanhazip.com`），请部署 `warp-svc` 目录下的版本。
 
 ```bash
-docker-compose down
+cd warp-svc
+docker compose up -d
 ```
+> **注意**：该版本需要 `privileged: true` 及 `NET_ADMIN` 权限，并且会产生较高的 CPU 占用。详情请查看 `warp-svc/README.md`。
+
+---
 
 ## ⚙️ 配置说明
 
-在 `docker-compose.yml` 文件中可以配置以下参数：
+编辑 `docker-compose.yml` 文件中的环境变量可以调整运行参数：
 
 | 配置项 | 默认值 | 说明 |
 |--------|--------|------|
-| `SOCKS_PORT` | 1080 | SOCKS5 代理端口 |
-| `RESTART_INTERVAL` | 3600 | IP 更换间隔时间（秒），默认 1 小时 |
+| `ROTATE_INTERVAL` | 3600 | IP 定时更换时间间隔（秒），默认 1 小时 |
 
 ### 修改配置示例
 
-编辑 `docker-compose.yml` 文件中的环境变量：
-
 ```yaml
 environment:
-  - SOCKS_PORT=1080          # 修改为需要的端口
-  - RESTART_INTERVAL=1800    # 改为 30 分钟自动更换一次
+  - ROTATE_INTERVAL=1800    # 改为 30 分钟自动更换一次
 ```
 
 然后重启服务：
 
 ```bash
-docker-compose down
-docker-compose up -d
+docker compose down && docker compose up -d
 ```
 
 ## 💻 使用方法
 
-### 命令行使用
-
-#### 通过 curl 测试
+### 命令行测试
 
 ```bash
 # 测试 SOCKS5 连接
-curl -x socks5://127.0.0.1:1080 https://www.whatismyipaddress.com
-
-# 获取当前 IP
-curl -s -x socks5://127.0.0.1:1080 https://api.ipify.org?format=json | jq .
+curl -x socks5h://127.0.0.1:1080 https://api.ipify.org
 ```
 
-#### Python 使用
+### Python 使用
 
 ```python
 import requests
-from requests.adapters import HTTPAdapter
-from socks import socksocket, SOCK5, SOCKS5
 
 def get_ip_via_warp():
-    socks_proxy = 'socks5://127.0.0.1:1080'
+    socks_proxy = 'socks5h://127.0.0.1:1080'
     proxies = {
         'http': socks_proxy,
         'https': socks_proxy,
@@ -127,156 +116,23 @@ def get_ip_via_warp():
 print(get_ip_via_warp())
 ```
 
-#### Node.js 使用
+### Node.js 使用
 
 ```javascript
 const axios = require('axios');
-const HttpProxyAgent = require('http-proxy-agent');
-const HttpsProxyAgent = require('https-proxy-agent');
+const { SocksProxyAgent } = require('socks-proxy-agent');
 
-const client = axios.create({
-  httpAgent: new HttpProxyAgent('http://127.0.0.1:1080'),
-  httpsAgent: new HttpsProxyAgent('http://127.0.0.1:1080'),
-});
+const agent = new SocksProxyAgent('socks5h://127.0.0.1:1080');
 
-client.get('https://api.ipify.org?format=json')
+axios.get('https://api.ipify.org?format=json', { httpsAgent: agent })
   .then(res => console.log(res.data));
-```
-
-### 查看日志
-
-```bash
-# 实时查看日志
-docker-compose logs -f
-
-# 查看最后 100 行日志
-docker-compose logs --tail=100
-
-# 只查看最后 1 小时的日志
-docker-compose logs --since 1h
-```
-
-### 管理容器
-
-```bash
-# 重启服务
-docker-compose restart
-
-# 更新镜像后重建
-docker-compose up -d --build
-
-# 删除所有相关资源
-docker-compose down -v
-```
-
-## 📁 项目结构
-
-```
-warp-proxy-docker/
-├── Dockerfile              # Docker 镜像构建文件
-├── docker-compose.yml      # Docker Compose 配置文件
-├── entrypoint.sh          # 容器启动入口脚本
-├── ip_changer.sh          # IP 定时更换脚本
-└── README.md              # 项目文档
-```
-
-### 文件说明
-
-- **Dockerfile** - 定义容器镜像，包含 WARP 客户端安装和依赖配置
-- **docker-compose.yml** - 定义服务配置、端口映射、环境变量等
-- **entrypoint.sh** - 容器启动时执行的脚本，负责初始化 WARP 和启动代理
-- **ip_changer.sh** - 后台运行的脚本，定期更换 IP 地址
-- **README.md** - 项目文档和使用说明
-
-## 🔍 常见问题
-
-### Q: 代理无法连接怎么办？
-
-A: 请按以下步骤排查：
-
-1. 确保容器已启动：`docker-compose ps`
-2. 查看容器日志：`docker-compose logs warp-socks`
-3. 确保防火墙未阻止 1080 端口
-4. 检查宿主机是否能连接：`telnet 127.0.0.1 1080`
-
-### Q: 如何修改代理端口？
-
-A: 编辑 `docker-compose.yml`，修改 `SOCKS_PORT` 环境变量和端口映射：
-
-```yaml
-environment:
-  - SOCKS_PORT=9090
-ports:
-  - "9090:9090"
-```
-
-### Q: 如何更改 IP 更换频率？
-
-A: 编辑 `docker-compose.yml`，修改 `RESTART_INTERVAL` 环境变量（秒为单位）：
-
-```yaml
-environment:
-  - RESTART_INTERVAL=1800  # 改为 30 分钟
-```
-
-### Q: 容器占用资源很大怎么办？
-
-A: 可以在 `docker-compose.yml` 中添加资源限制：
-
-```yaml
-services:
-  warp-socks:
-    ...
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 512M
-        reservations:
-          cpus: '0.5'
-          memory: 256M
-```
-
-### Q: 如何确认 IP 是否成功更换？
-
-A: 运行以下命令多次，观察返回的 IP 是否变化：
-
-```bash
-for i in {1..5}; do 
-  echo "Check $i:"
-  curl -s -x socks5://127.0.0.1:1080 https://api.ipify.org
-  sleep 2
-done
 ```
 
 ## ⚠️ 注意事项
 
-1. **权限要求** - 容器需要 root 权限运行（`privileged: true`）以配置网络
-2. **网络配置** - IP 更换过程中可能会有短暂的连接中断
-3. **Cloudflare ToS** - 使用本项目需遵守 Cloudflare WARP 服务条款
-4. **检测风险** - 频繁更换 IP 可能被某些服务检测为异常活动
-5. **地区限制** - 某些地区的 Cloudflare WARP 可能受到限制
-6. **首次启动** - 首次启动可能需要 1-2 分钟来初始化 WARP 服务
-
-## 🔐 安全建议
-
-- 不要将代理端口暴露到互联网，仅用于本地或受信任的网络
-- 定期检查容器日志以发现异常活动
-- 使用防火墙限制对代理端口的访问
-- 定期更新 Docker 镜像以获取最新的安全补丁
+1. **Cloudflare ToS** - 使用本项目需遵守 Cloudflare WARP 服务条款。
+2. **连接稳定性** - 由于免费 WARP 节点可能遭到网络干预，脚本内置了断线检测与重连功能。如果日志中频繁出现 `Proxy dead`，属正常自愈行为。
 
 ## 📝 许可证
 
 MIT License - 详见 LICENSE 文件
-
-## 🤝 贡献
-
-欢迎提交 Issue 和 Pull Request 来改进本项目！
-
-## 📧 联系方式
-
-如有问题或建议，请通过 Issue 跟踪系统联系我们。
-
----
-
-**提示**：如果这个项目对你有帮助，请给一个 Star ⭐ 来支持我们！

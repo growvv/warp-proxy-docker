@@ -8,4 +8,13 @@ services:
     ports:
       - "1080:1080"
     environment:
-      - ROTATE_INTERVAL=300
+      - ROTATE_INTERVAL=3600
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=0
+networks:
+  default:
+    enable_ipv6: true
+    ipam:
+      config:
+        - subnet: 172.18.0.0/16
+        - subnet: "2001:db8:1::/64"

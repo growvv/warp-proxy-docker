@@ -18,6 +18,7 @@ do
   echo "" >> wireproxy.conf
   echo "[Socks5]" >> wireproxy.conf
   echo "BindAddress = 0.0.0.0:1080" >> wireproxy.conf
+  sed -i 's/DNS = .*/DNS = 1.1.1.1, 1.0.0.1, 2606:4700:4700::1111, 2606:4700:4700::1001/g' wireproxy.conf
 
   wireproxy -c /etc/wireguard/wireproxy.conf &
 
