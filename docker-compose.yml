@@ -1,17 +1,14 @@
 version: '3.8'
-
 services:
   warp-socks:
     build: .
     container_name: warp-socks
-    restart: always
-    privileged: true # WARP 服务可能需要较高权限来配置网络
-    cap_add:
-      - NET_ADMIN
+    privileged: true
     ports:
-      - "1080:1080" # 宿主机端口:容器端口
+      - "1080:1080"
     environment:
-      - SOCKS_PORT=1080          # 暴露的 SOCKS5 代理端口
-      - RESTART_INTERVAL=3600    # 定时更换 IP 的时间间隔（秒），3600即为1小时
+      - RESTART_INTERVAL=3600 # 每小时换一次 IP
     sysctls:
-      - net.ipv6.conf.all.disable_ipv6=0 # 确保容器内开启 IPv6 支持
+      - net.ipv6.conf.all.disable_ipv6=0
+      - net.ipv6.conf.all.forwarding=1
+    restart: always
