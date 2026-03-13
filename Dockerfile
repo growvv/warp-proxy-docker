@@ -1,18 +1,16 @@
-FROM alpine:latest
+FROM alpine:3.20
 
-# 安装基础依赖
-RUN apk add --no-cache wireguard-tools wireguard-go curl iproute2 ca-certificates bash
+RUN apk add --no-cache curl bash iproute2
 
-# 1. 下载最新版 wgcf
-RUN WGCF_URL=$(curl -s https://api.github.com/repos/ViRb3/wgcf/releases/latest | grep "browser_download_url.*linux_amd64" | cut -d '"' -f 4) && \
-    curl -L "$WGCF_URL" -o /usr/local/bin/wgcf && chmod +x /usr/local/bin/wgcf
-
-# 2. 下载最新版 Gost
-RUN GOST_URL=$(curl -s https://api.github.com/repos/ginuerzh/gost/releases/latest | grep "browser_download_url.*linux_amd64.tar.gz" | cut -d '"' -f 4) && \
-    curl -L "$GOST_URL" | tar xz -C /usr/local/bin/ && chmod +x /usr/local/bin/gost
+# 下载 warp-proxy
+RUN wget -O /usr/local/bin/warp-proxy \
+https://github.com/bepass-org/warp-plus/releases/latest/download/warp-proxy-linux-amd64 \
+&& chmod +x /usr/local/bin/warp-proxy
 
 COPY entrypoint.sh /entrypoint.sh
 COPY rotate_ip.sh /rotate_ip.sh
-RUN chmod +x /entrypoint.sh /rotate_ip.sh
+COPY healthcheck.sh /healthcheck.sh
+
+RUN chmod +x /*.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
