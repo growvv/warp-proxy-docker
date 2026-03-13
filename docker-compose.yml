@@ -22,4 +22,4 @@ networks:
     ipam:
       config:
         - subnet: 10.222.0.0/16
-        - subnet: "2001:db8:1::/64"
+        - subnet: "2001:db8:2::/64"
