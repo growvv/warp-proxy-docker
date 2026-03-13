@@ -20,6 +20,10 @@ warp-cli --accept-tos mode proxy
 warp-cli --accept-tos proxy port 10080
 warp-cli --accept-tos connect
 
+warp-cli --accept-tos settings
+warp-cli --accept-tos tunnel dns off
+# 如果你不需要看实时流量统计，关闭它
+warp-cli --accept-tos metrics off
 # 等待连接成功
 sleep 3
 
