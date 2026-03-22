@@ -1,7 +1,9 @@
-FROM alpine:3.20
+FROM debian:bookworm-slim
 
-# 安装必要的依赖，这里只需要 curl 和 bash
-RUN apk add --no-cache curl bash
+# 安装必要的依赖
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl bash tar ca-certificates procps && \
+    rm -rf /var/lib/apt/lists/*
 
 # 获取架构并下载对应的 wgcf 和 wireproxy 二进制文件
 RUN ARCH=$(uname -m) && \

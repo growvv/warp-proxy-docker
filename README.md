@@ -44,14 +44,19 @@ cd warp-proxy-docker
 ### 2. 启动服务
 
 ```bash
-docker compose up -d
+docker compose up -d --build
 ```
+
+> 默认 `docker-compose.yml` 已包含 `build.network: host`，用于规避部分网络环境下 Docker build 阶段的 DNS 解析失败问题。
 
 ### 3. 验证服务
 
 ```bash
 # 测试 SOCKS5 代理（需要安装 curl）
 curl -x socks5h://127.0.0.1:1080 https://api.ipify.org
+
+# 查看启动日志
+docker compose logs -f warp
 ```
 
 ---
@@ -87,6 +92,38 @@ environment:
 
 ```bash
 docker compose down && docker compose up -d
+```
+
+## 🔧 排障建议
+
+### 1. 构建阶段卡在包管理器或 DNS 解析
+
+如果镜像构建时出现包管理器无法解析域名、`Temporary failure resolving` 或长期卡在下载依赖阶段，请优先检查宿主机 Docker 的 DNS 设置。当前默认配置已使用 `build.network: host`，在多数受限网络下可直接绕过此问题。
+
+### 2. 容器启动后日志出现 `pkill: command not found`
+
+健康检查和 IP 轮换脚本依赖 `pkill`。当前镜像已经补充 `procps` 依赖；如果您基于旧镜像运行，请执行一次重新构建：
+
+```bash
+docker compose down
+docker compose up -d --build
+```
+
+### 3. SOCKS5 端口已监听，但代理仍不可用
+
+如果 `docker ps` 显示 `1080` 已映射，但 `curl -x socks5h://127.0.0.1:1080 https://api.ipify.org` 仍失败，请查看日志中是否有如下现象：
+
+- `Handshake did not complete after 5 seconds`
+- 持续重复 `Sending handshake initiation`
+
+这通常表示宿主机到 Cloudflare WARP 的 UDP/WireGuard 握手链路不通，常见原因包括运营商或机房网络限制、宿主机防火墙策略、出站 UDP 被拦截等。此时项目本身可能已经正常启动，但隧道无法真正建立。
+
+### 4. 查看关键运行状态
+
+```bash
+docker compose ps
+docker compose logs --tail 200 warp
+curl -v -x socks5h://127.0.0.1:1080 https://api.ipify.org
 ```
 
 ## 💻 使用方法
