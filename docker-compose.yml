@@ -4,22 +4,16 @@ services:
       context: .
       network: host
     container_name: warp-proxy
+    network_mode: host
     deploy:
       resources:
         limits:
           cpus: "0.5"
           memory: 512M
     restart: always
-    ports:
-      - "1080:1080"
     environment:
       - ROTATE_INTERVAL=3600
-    sysctls:
-      - net.ipv6.conf.all.disable_ipv6=0
-networks:
-  default:
-    enable_ipv6: true
-    ipam:
-      config:
-        - subnet: 10.222.0.0/16
-        - subnet: "2001:db8:2::/64"
+      - http_proxy=http://127.0.0.1:15732
+      - https_proxy=http://127.0.0.1:15732
+      - HTTP_PROXY=http://127.0.0.1:15732
+      - HTTPS_PROXY=http://127.0.0.1:15732

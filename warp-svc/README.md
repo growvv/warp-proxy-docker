@@ -16,8 +16,16 @@
 ### 1. 启动服务
 ```bash
 cd warp-svc
-docker compose up -d
+docker compose up -d --build
 ```
+
+当前 `docker-compose.yml` 默认使用：
+
+- `network_mode: host`
+- `build.network: host`
+- 宿主机代理 `http://127.0.0.1:15732`
+
+这样可以直接复用宿主机上的代理访问 Cloudflare HTTPS 控制面，并让新版官方客户端优先使用 `MASQUE`。
 
 ### 2. 验证 IPv6 连接
 ```bash
@@ -26,6 +34,24 @@ curl -x socks5h://127.0.0.1:1080 https://ipv6.icanhazip.com
 
 ### 3. 配置更换 IP 间隔
 可以通过修改 `docker-compose.yml` 中的 `RESTART_INTERVAL` (单位: 秒) 来控制自动换 IP 的频率。
+
+## 🔧 兼容性说明
+
+新版 `cloudflare-warp` 客户端的 `warp-cli` 子命令与旧版本不同，例如旧脚本中的 `warp-cli tunnel mode proxy`、`warp-cli tunnel dns off`、`warp-cli metrics off` 已不再可用。
+
+当前脚本已切换为新版兼容写法：
+
+- `warp-cli mode proxy`
+- `warp-cli proxy port 10080`
+- `warp-cli tunnel protocol set MASQUE`
+- `warp-cli dns log disable`
+
+可通过以下命令确认连接状态：
+
+```bash
+docker compose exec warp-socks warp-cli --accept-tos status
+docker compose exec warp-socks warp-cli --accept-tos settings
+```
 
 ## 📝 文件说明
 - `Dockerfile` - 基于 Ubuntu 构建并安装 `cloudflare-warp` 官方客户端

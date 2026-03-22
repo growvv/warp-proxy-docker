@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # 1. 启动 WARP 后台守护进程
 warp-svc > /dev/null 2>&1 &
@@ -11,21 +12,24 @@ while ! warp-cli --accept-tos status > /dev/null 2>&1; do
     sleep 1
 done
 echo "warp-svc is running."
-# 禁用自动 DNS 更新，减少不必要的系统调用
-warp-cli --accept-tos tunnel mode proxy
-warp-cli --accept-tos tunnel ipv6 allow
+
 # 2. 初始化 WARP 配置 (使用内部端口 10080)
 warp-cli --accept-tos registration new
 warp-cli --accept-tos mode proxy
 warp-cli --accept-tos proxy port 10080
+warp-cli --accept-tos tunnel protocol set MASQUE
+warp-cli --accept-tos dns log disable
 warp-cli --accept-tos connect
 
+echo "Waiting for WARP connection..."
+for _ in $(seq 1 30); do
+    if warp-cli --accept-tos status | grep -q "Connected"; then
+        break
+    fi
+    sleep 1
+done
+warp-cli --accept-tos status
 warp-cli --accept-tos settings
-warp-cli --accept-tos tunnel dns off
-# 如果你不需要看实时流量统计，关闭它
-warp-cli --accept-tos metrics off
-# 等待连接成功
-sleep 3
 
 # 3. 使用 socat 将容器的 0.0.0.0 端口转发到 WARP 的 127.0.0.1 端口
 # 这样外部才可以连接到容器里的代理

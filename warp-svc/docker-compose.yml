@@ -1,9 +1,15 @@
-version: '3.8'
-
 services:
   warp-socks:
-    build: .
+    build:
+      context: .
+      network: host
+      args:
+        http_proxy: http://127.0.0.1:15732
+        https_proxy: http://127.0.0.1:15732
+        HTTP_PROXY: http://127.0.0.1:15732
+        HTTPS_PROXY: http://127.0.0.1:15732
     container_name: warp-socks
+    network_mode: host
     restart: always
     privileged: true # WARP 服务可能需要较高权限来配置网络
     cap_add:
@@ -11,10 +17,10 @@ services:
       - SYS_ADMIN # 必须加入此项，解决 warp-svc 权限问题
     devices:
       - /dev/net/tun:/dev/net/tun # 显式映射 TUN 设备
-    ports:
-      - "1080:1080" # 宿主机端口:容器端口
     environment:
       - SOCKS_PORT=1080          # 暴露的 SOCKS5 代理端口
       - RESTART_INTERVAL=3600    # 定时更换 IP 的时间间隔（秒），3600即为1小时
-    sysctls:
-      - net.ipv6.conf.all.disable_ipv6=0 # 确保容器内开启 IPv6 支持
+      - http_proxy=http://127.0.0.1:15732
+      - https_proxy=http://127.0.0.1:15732
+      - HTTP_PROXY=http://127.0.0.1:15732
+      - HTTPS_PROXY=http://127.0.0.1:15732

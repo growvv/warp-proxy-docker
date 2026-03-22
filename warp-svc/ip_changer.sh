@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # 默认 3600 秒 (1小时) 更换一次
 INTERVAL=${RESTART_INTERVAL:-3600}
@@ -15,6 +16,8 @@ while true; do
     # 重新配置代理模式
     warp-cli --accept-tos mode proxy
     warp-cli --accept-tos proxy port 10080
+    warp-cli --accept-tos tunnel protocol set MASQUE
+    warp-cli --accept-tos dns log disable
     warp-cli --accept-tos connect
     
     echo "[$(date)] WARP IP 更换完成！"
