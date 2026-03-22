@@ -14,7 +14,14 @@ done
 echo "warp-svc is running."
 
 # 2. 初始化 WARP 配置 (使用内部端口 10080)
-warp-cli --accept-tos registration new
+if ! warp-cli --accept-tos registration new; then
+    echo "registration new failed, trying to reuse existing registration..."
+    if ! warp-cli --accept-tos registration show >/dev/null 2>&1; then
+        echo "No existing registration is available." >&2
+        exit 1
+    fi
+fi
+
 warp-cli --accept-tos mode proxy
 warp-cli --accept-tos proxy port 10080
 warp-cli --accept-tos tunnel protocol set MASQUE

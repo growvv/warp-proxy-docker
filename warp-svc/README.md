@@ -35,6 +35,30 @@ curl -x socks5h://127.0.0.1:1080 https://ipv6.icanhazip.com
 ### 3. 配置更换 IP 间隔
 可以通过修改 `docker-compose.yml` 中的 `RESTART_INTERVAL` (单位: 秒) 来控制自动换 IP 的频率。
 
+## ⏯️ 启停命令
+
+常用启停命令如下：
+
+```bash
+# 首次启动或配置变更后重建
+docker compose up -d --build
+
+# 临时停止，不删除容器
+docker compose stop
+
+# 重新启动已存在容器
+docker compose start
+
+# 停止并删除容器
+docker compose down
+```
+
+建议：
+
+- 如果只是暂时不用，优先执行 `docker compose stop`
+- 下次直接执行 `docker compose start` 即可，当前脚本会优先复用已有 registration，通常不需要重新注册
+- 只有在修改了 `Dockerfile`、`docker-compose.yml` 或启动脚本后，才需要再执行 `docker compose up -d --build`
+
 ## 🔧 兼容性说明
 
 新版 `cloudflare-warp` 客户端的 `warp-cli` 子命令与旧版本不同，例如旧脚本中的 `warp-cli tunnel mode proxy`、`warp-cli tunnel dns off`、`warp-cli metrics off` 已不再可用。
